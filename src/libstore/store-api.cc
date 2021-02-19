@@ -793,6 +793,17 @@ std::map<StorePath, StorePath> copyPaths(ref<Store> srcStore, ref<Store> dstStor
         if (auto realisation = std::get_if<Realisation>(&path.raw))
             realisations.insert(*realisation);
     }
+    auto pathsMap = copyPaths(srcStore, dstStore, storePaths);
+    for (auto& realisation : realisations) {
+        dstStore->registerDrvOutput(realisation);
+    }
+
+    return pathsMap;
+}
+
+std::map<StorePath, StorePath> copyPaths(ref<Store> srcStore, ref<Store> dstStore, const StorePathSet & storePaths,
+    RepairFlag repair, CheckSigsFlag checkSigs, SubstituteFlag substitute)
+{
     auto valid = dstStore->queryValidPaths(storePaths, substitute);
 
     StorePathSet missing;
@@ -877,21 +888,7 @@ std::map<StorePath, StorePath> copyPaths(ref<Store> srcStore, ref<Store> dstStor
             nrDone++;
             showProgress();
         });
-
-    for (auto& realisation : realisations) {
-        dstStore->registerDrvOutput(realisation);
-    }
-
     return pathsMap;
-}
-
-std::map<StorePath, StorePath> copyPaths(ref<Store> srcStore, ref<Store> dstStore, const StorePathSet & storePaths,
-    RepairFlag repair, CheckSigsFlag checkSigs, SubstituteFlag substitute)
-{
-    RealisedPath::Set paths;
-    for (auto p : storePaths)
-        paths.insert(p);
-    return copyPaths(srcStore, dstStore, paths, repair, checkSigs, substitute);
 }
 
 std::optional<ValidPathInfo> decodeValidPathInfo(const Store & store, std::istream & str, std::optional<HashResult> hashGiven)
