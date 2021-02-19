@@ -793,7 +793,7 @@ std::map<StorePath, StorePath> copyPaths(ref<Store> srcStore, ref<Store> dstStor
         if (auto realisation = std::get_if<Realisation>(&path.raw))
             realisations.insert(*realisation);
     }
-    auto pathsMap = copyPaths(srcStore, dstStore, storePaths);
+    auto pathsMap = copyPaths(srcStore, dstStore, storePaths, repair, checkSigs, substitute);
     for (auto& realisation : realisations) {
         dstStore->registerDrvOutput(realisation);
     }
